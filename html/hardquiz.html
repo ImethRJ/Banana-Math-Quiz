@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banana Math Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/commonquiz.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Banana Math Quiz</h1>
+        </div>
+        
+        <div class="stat-container">
+            <div class="stat timer">
+                <i class="fas fa-hourglass-half"></i>
+                <span id="timer">20s</span>
+            </div>
+            <div class="stat score">
+                <i class="fas fa-star"></i>
+                <span id="score">0</span>
+            </div>
+        </div>
+        
+        <div class="lives-container" id="lives">❤️❤️</div>
+        
+        <div class="question-container">
+            <img id="question-img" src="" alt="Loading puzzle...">
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="answer" class="answer-input" placeholder="Enter your answer..." autocomplete="off">
+        </div>
+        
+        <button class="submit-btn" id="submit-btn">
+            <i class="fas fa-paper-plane"></i> Submit
+        </button>
+        
+        <div id="result"></div>
+    </div>
+    
+    <div class="footer">
+        <p>Challenge your brain with fun math puzzles! 🧠✨</p>
+    </div>
+    <script src="../js/hardquiz.js"></script>
+</body>
+</html>
