@@ -64,6 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
     createBoard();
     startTimer();
     document.getElementById('start-quiz').addEventListener('click', () => {
-        window.location.href = 'Easy.html';
+        window.location.href = 'levels.html';
     });
 });
