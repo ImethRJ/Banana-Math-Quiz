@@ -1,6 +1,4 @@
-const cards = [
-    '🍎', '🍎', '🍌', '🍌', '🍇', '🍇', '🍉', '🍉', '🍓', '🍓', '🍒', '🍒'
-];
+const cards = ['🍎', '🍎', '🍌', '🍌', '🍇', '🍇', '🍉', '🍉', '🍓', '🍓', '🍒', '🍒'];
 let flippedCards = [];
 let matchedPairs = 0;
 let timer = 0;
@@ -23,7 +21,7 @@ function createBoard() {
 }
 
 function flipCard() {
-    if (flippedCards.length < 2) {
+    if (flippedCards.length < 2 && !this.classList.contains('flipped')) {
         this.classList.add('flipped');
         this.textContent = this.dataset.card;
         flippedCards.push(this);
@@ -40,7 +38,7 @@ function checkMatch() {
         flippedCards = [];
         if (matchedPairs === cards.length / 2) {
             clearInterval(interval);
-            document.getElementById('start-quiz').style.display = 'block';
+            showCompletionMessage();
         }
     } else {
         setTimeout(() => {
@@ -60,10 +58,18 @@ function startTimer() {
     }, 1000);
 }
 
+function showCompletionMessage() {
+    const message = document.getElementById('completion-message');
+    message.style.display = 'block';
+    setTimeout(() => {
+        message.style.opacity = '1';
+    }, 100);
+    setTimeout(() => {
+        window.location.href = 'levels.html';
+    }, 2000);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     createBoard();
     startTimer();
-    document.getElementById('start-quiz').addEventListener('click', () => {
-        window.location.href = 'levels.html';
-    });
 });
