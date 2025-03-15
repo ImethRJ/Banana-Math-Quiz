@@ -1,84 +1,104 @@
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            position: relative;
-            color: white;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-        }
-        
-        body::before {
-            content: "";
-            position: fixed; /* Fixed instead of absolute to cover when scrolling */
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("../images/A_cartoon-style_monkey_holding_a_bunch_of_bananas.jpg") no-repeat center center;
-            background-size: cover;
-            opacity: 0.7; /* Adjust opacity as needed */
-            z-index: -1;
-        }
-        
-        h1 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 60px;
-            margin-top: 50px;
-            color: #FFD700; /* Banana yellow */
-            text-shadow: 4px 4px 6px rgba(0, 0, 0, 0.6);
-            animation: bounce 1.5s infinite alternate ease-in-out;
-            position: relative;
-        }
-        
-        @keyframes bounce {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-10px); }
-        }
-        
-        .button-container {
-            margin-top: 50px;
-            position: relative;
-        }
-        
-        .round-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 150px;
-            height: 150px;
-            margin: 20px;
-            border-radius: 50%;
-            background: white;
-            color: black;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            border: 3px solid black;
-            opacity: 0.8; /* Semi-transparent buttons */
-        }
-        
-        .round-button:hover {
-            transform: scale(1.1);
-            opacity: 1; /* Fully visible on hover */
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .round-button {
-                width: 120px;
-                height: 120px;
-                font-size: 20px;
-            }
-        }
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    position: relative;
+    color: white;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("../images/A_cartoon-style_monkey_holding_a_bunch_of_bananas.jpg") no-repeat center center;
+    background-size: cover;
+    opacity: 0.7; /* Adjust opacity as needed */
+    z-index: -1;
+}
+
+h1 {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 60px;
+    margin-top: 50px;
+    color: #FFD700; /* Banana yellow */
+    text-shadow: 4px 4px 6px rgba(0, 0, 0, 0.6);
+    animation: bounce 1.5s infinite alternate ease-in-out;
+    position: relative;
+}
+
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+
+.button-container {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 20px; /* Adds spacing between buttons */
+margin-top: 50px;
+}
+
+.round-button {
+width: 120px; 
+height: 120px;
+border-radius: 50%;
+text-align: center;
+line-height: 120px;
+font-size: 18px;
+font-weight: bold;
+background: white;
+color: black;
+text-decoration: none;
+box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+transition: transform 0.2s ease-in-out;
+}
+
+.round-button:hover {
+transform: scale(1.1);
+}
+
+#username-display {
+font-size: 22px; /* Increase readability */
+font-weight: bold;
+color: #ffd700; /* Golden text */
+background: rgba(0, 0, 0, 0.6); /* Dark semi-transparent background */
+padding: 8px 15px;
+border-radius: 10px;
+text-align: center;
+display: inline-block;
+position: absolute;
+top: 20px;  /* Move to the top */
+left: 30px; /* Move to the left */
+}
+
+
+
+/* Ensure all buttons are aligned */
+#login-button {
+position: relative; /* Remove any incorrect absolute positioning */
+top: 0; /* Reset any offsets */
+}
+
+
+
+@media (max-width: 768px) {
+    .round-button {
+        width: 120px;
+        height: 120px;
+        font-size: 20px;
+    }
+}

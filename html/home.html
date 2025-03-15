@@ -6,13 +6,76 @@
     <title>Banana Math Quiz</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <link href="../css/home.css" rel="stylesheet">
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7js4aE8oDH9HPlQMJawxyDP3DwiY7xHc",
+            authDomain: "banana-quiz-6bf99.firebaseapp.com",
+            projectId: "banana-quiz-6bf99",
+            storageBucket: "banana-quiz-6bf99.appspot.com",
+            messagingSenderId: "18102598554",
+            appId: "1:18102598554:web:cac2591308e3b466d59823"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const usernameDisplay = document.getElementById("username-display");
+            const playButton = document.getElementById("play-button");
+            const loginButton = document.getElementById("login-button");
+            const logoutButton = document.getElementById("logout-button");
+
+            // Check if user is logged in
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    usernameDisplay.textContent = `Welcome, ${user.email.split('@')[0]}!`;
+                    playButton.href = "additional game.html"; // Allow access
+                    loginButton.style.display = "none"; // Hide login button
+                    logoutButton.style.display = "inline-block"; // Show logout button
+                } else {
+                    usernameDisplay.textContent = "";
+                    playButton.href = "#"; // Prevent direct access
+                    loginButton.style.display = "inline-block"; // Show login button
+                    logoutButton.style.display = "none"; // Hide logout button
+                }
+            });
+
+            // Prevent play button if user not logged in
+            playButton.addEventListener("click", function(event) {
+                if (!auth.currentUser) {
+                    event.preventDefault();
+                    alert("You must be logged in to play!");
+                    window.location.href = "login.html";
+                }
+            });
+
+            // Logout function
+            logoutButton.addEventListener("click", function() {
+                signOut(auth).then(() => {
+                    alert("Logged out successfully!");
+                    window.location.reload();
+                }).catch((error) => {
+                    alert("Error logging out: " + error.message);
+                });
+            });
+        });
+    </script>
 </head>
 <body>
     <h1>Banana Math Quiz</h1>
+    <p id="username-display" style="text-align: center; font-size: 1.2em;"></p>
+
     <div class="button-container">
-        <a href="additional game.html" class="round-button">Play</a>
+        <a href="#" class="round-button" id="play-button">Play</a>
         <a href="highscore.html" class="round-button">Highscores</a>
-        <a href="login.html" class="round-button">Login</a>
+        <a href="login.html" class="round-button" id="login-button">Login</a>
+        <button class="round-button" id="logout-button" style="display: none;">Logout</button>
     </div>
 </body>
 </html>

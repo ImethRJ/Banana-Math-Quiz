@@ -1,19 +1,96 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Signup</title>
-    <link href="../css/login.css" rel="stylesheet">
+    <title>Banana Math Quiz - Login</title>
+    <link rel="stylesheet" href="../css/login.css">
+    
+    <script type="module">
+        // Import the functions you need from the SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7js4aE8oDH9HPlQMJawxyDP3DwiY7xHc",
+            authDomain: "banana-quiz-6bf99.firebaseapp.com",
+            projectId: "banana-quiz-6bf99",
+            storageBucket: "banana-quiz-6bf99.appspot.com",
+            messagingSenderId: "18102598554",
+            appId: "1:18102598554:web:cac2591308e3b466d59823"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Signup Function
+        window.signup = function() {
+            const email = document.getElementById("signup-email").value;
+            const password = document.getElementById("signup-password").value;
+            
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    document.getElementById("status").innerText = "Signup successful! You can now log in.";
+                })
+                .catch((error) => {
+                    document.getElementById("status").innerText = error.message;
+                });
+        };
+
+        // Login Function
+        window.login = function() {
+            const email = document.getElementById("login-email").value;
+            const password = document.getElementById("login-password").value;
+            
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    document.getElementById("status").innerText = "Login successful! Redirecting...";
+                    setTimeout(() => {
+                        window.location.href = "home.html";
+                    }, 1500);
+                })
+                .catch((error) => {
+                    document.getElementById("status").innerText = error.message;
+                });
+        };
+
+        // Logout Function
+        window.logout = function() {
+            signOut(auth)
+                .then(() => {
+                    document.getElementById("status").innerText = "You have logged out.";
+                })
+                .catch((error) => {
+                    document.getElementById("status").innerText = error.message;
+                });
+        };
+    </script>
 </head>
 <body>
     <div class="container">
-        <h2>🔐 Login / Signup</h2>
-        <input type="text" id="username" placeholder="Enter Username">
-        <input type="password" id="password" placeholder="Enter Password">
-        <button onclick="login()">Login</button>
-        <button onclick="signup()">Signup</button>
+        <h1>🍌 Banana Math Quiz 🍌</h1>
+
+        <!-- Signup Form -->
+        <div id="signup-box">
+            <h2>Sign Up</h2>
+            <input type="email" id="signup-email" placeholder="Email">
+            <input type="password" id="signup-password" placeholder="Password">
+            <button onclick="signup()">Sign Up</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-box">
+            <h2>Login</h2>
+            <input type="email" id="login-email" placeholder="Email">
+            <input type="password" id="login-password" placeholder="Password">
+            <button onclick="login()">Login</button>
+        </div>
+
+        <p id="status"></p>
     </div>
-<script src="../js/login.js"></script>
 </body>
 </html>
