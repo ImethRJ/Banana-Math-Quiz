@@ -1,3 +1,6 @@
+        function exitGame() {
+            window.location.href = 'home.html'; // Change this to the desired exit action
+        }
 const cards = ['🍎', '🍎', '🍌', '🍌', '🍇', '🍇', '🍉', '🍉', '🍓', '🍓', '🍒', '🍒'];
 let flippedCards = [];
 let matchedPairs = 0;

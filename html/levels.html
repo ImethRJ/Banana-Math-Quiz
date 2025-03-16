@@ -1,12 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html> 
+<html lang="en"> 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banana Game - Levels</title>
     <link rel="stylesheet" href="../css/levels.css">
+    <style>
+        .exit-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        .exit-button:hover {
+            background-color: darkred;
+        }
+    </style>
 </head>
 <body>
+    <button class="exit-button" onclick="exitGame()">Exit</button>
     <div class="container">
         <h1>Banana Game</h1>
         <div class="levels">
@@ -16,10 +34,16 @@
             <button class="level-btn insane">Insane</button>
         </div>
     </div>
-<div class="banana banana1">🍌</div>
-<div class="banana banana2">🍌</div>
-<div class="banana banana3">🍌</div>
-<div class="banana banana4">🍌</div>
-<script src="../js/levels.js"></script>
+    <div class="banana banana1">🍌</div>
+    <div class="banana banana2">🍌</div>
+    <div class="banana banana3">🍌</div>
+    <div class="banana banana4">🍌</div>
+    
+    <script>
+        function exitGame() {
+            window.location.href = 'home.html'; // Change this to the desired exit action
+        }
+    </script>
+    <script src="../js/levels.js"></script>
 </body>
 </html>

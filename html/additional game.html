@@ -5,11 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memory Match - Additional Game</title>
     <link href="../css/additional game.css" rel="stylesheet">
+    
 </head>
 <body>
-    <div class="memory-game"></div>
+    <div class="memory-game">
+        <button class="exit-button" onclick="exitGame()">Exit</button>
+    </div>
     <div id="timer">Time: 0</div>
     <div id="completion-message">You finished the additional game!</div>
-<script src="../js/additional game.js"></script>
+    
+    <script>
+        function exitGame() {
+            window.location.href = 'home.html'; // Change this to the desired exit action
+        }
+    </script>
+    <script src="../js/additional game.js"></script>
 </body>
 </html>

@@ -1,3 +1,7 @@
+function exitGame() {
+            window.location.href = 'home.html';
+        }
+
 let correctAnswer = null;
 let score = 0;
 let lives = 4;

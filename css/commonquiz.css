@@ -274,3 +274,18 @@
                 padding: 10px;
             }
         }
+.exit-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        .exit-button:hover {
+            background-color: darkred;
+        }
