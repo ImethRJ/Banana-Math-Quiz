@@ -53,11 +53,29 @@
                 });
         };
     </script>
-    <style>
+<style>
+        body {
+            background-image: url('../images/monkey_2.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
         .tab { cursor: pointer; padding: 10px 20px; display: inline-block; }
         .active { font-weight: bold; border-bottom: 2px solid #000; }
         .form-container { display: none; }
         .visible { display: block; }
+        .container {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
