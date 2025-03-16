@@ -7,12 +7,10 @@
     <link rel="stylesheet" href="../css/login.css">
     
     <script type="module">
-        // Import the functions you need from the SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
         
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyA7js4aE8oDH9HPlQMJawxyDP3DwiY7xHc",
             authDomain: "banana-quiz-6bf99.firebaseapp.com",
@@ -22,12 +20,10 @@
             appId: "1:18102598554:web:cac2591308e3b466d59823"
         };
         
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Signup Function
         window.signup = function() {
             const email = document.getElementById("signup-email").value;
             const password = document.getElementById("signup-password").value;
@@ -41,7 +37,6 @@
                 });
         };
 
-        // Login Function
         window.login = function() {
             const email = document.getElementById("login-email").value;
             const password = document.getElementById("login-password").value;
@@ -57,40 +52,54 @@
                     document.getElementById("status").innerText = error.message;
                 });
         };
-
-        // Logout Function
-        window.logout = function() {
-            signOut(auth)
-                .then(() => {
-                    document.getElementById("status").innerText = "You have logged out.";
-                })
-                .catch((error) => {
-                    document.getElementById("status").innerText = error.message;
-                });
-        };
     </script>
+    <style>
+        .tab { cursor: pointer; padding: 10px 20px; display: inline-block; }
+        .active { font-weight: bold; border-bottom: 2px solid #000; }
+        .form-container { display: none; }
+        .visible { display: block; }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>🍌 Banana Math Quiz 🍌</h1>
-
-        <!-- Signup Form -->
-        <div id="signup-box">
+        <div>
+            <span class="tab active" id="signup-tab" onclick="showTab('signup')">Sign Up</span>
+            <span class="tab" id="login-tab" onclick="showTab('login')">Login</span>
+        </div>
+        
+        <div id="signup-box" class="form-container visible">
             <h2>Sign Up</h2>
             <input type="email" id="signup-email" placeholder="Email">
             <input type="password" id="signup-password" placeholder="Password">
             <button onclick="signup()">Sign Up</button>
         </div>
-
-        <!-- Login Form -->
-        <div id="login-box">
+        
+        <div id="login-box" class="form-container">
             <h2>Login</h2>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-password" placeholder="Password">
             <button onclick="login()">Login</button>
         </div>
-
+        
         <p id="status"></p>
     </div>
+    
+    <script>
+        function showTab(tab) {
+            document.getElementById('signup-box').classList.remove('visible');
+            document.getElementById('login-box').classList.remove('visible');
+            document.getElementById('signup-tab').classList.remove('active');
+            document.getElementById('login-tab').classList.remove('active');
+            
+            if (tab === 'signup') {
+                document.getElementById('signup-box').classList.add('visible');
+                document.getElementById('signup-tab').classList.add('active');
+            } else {
+                document.getElementById('login-box').classList.add('visible');
+                document.getElementById('login-tab').classList.add('active');
+            }
+        }
+    </script>
 </body>
 </html>
