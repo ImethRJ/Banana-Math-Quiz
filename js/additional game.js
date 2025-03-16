@@ -1,5 +1,5 @@
-        function exitGame() {
-            window.location.href = 'home.html'; // Change this to the desired exit action
+function exitGame() {
+            window.location.href = 'home.html';
         }
 const cards = ['🍎', '🍎', '🍌', '🍌', '🍇', '🍇', '🍉', '🍉', '🍓', '🍓', '🍒', '🍒'];
 let flippedCards = [];
