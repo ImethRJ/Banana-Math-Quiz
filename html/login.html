@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Banana Math Quiz - Login</title>
     <link rel="stylesheet" href="../css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            GoogleAuthProvider, 
+            signInWithPopup 
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc,
+            collection,
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyA7js4aE8oDH9HPlQMJawxyDP3DwiY7xHc",
@@ -23,14 +38,87 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Handle user data in Firestore
+        async function saveUserData(user) {
+            try {
+                // Reference to the user document in Firestore
+                const userRef = doc(db, "users", user.uid);
+                
+                // Check if the user document already exists
+                const userSnap = await getDoc(userRef);
+                
+                if (!userSnap.exists()) {
+                    // User's first login - create a new user document
+                    await setDoc(userRef, {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || '',
+                        photoURL: user.photoURL || '',
+                        authProvider: user.providerData[0]?.providerId || 'password',
+                        createdAt: serverTimestamp(),
+                        lastLogin: serverTimestamp(),
+                        quizProgress: {
+                            completedQuizzes: 0,
+                            totalScore: 0,
+                            level: 'beginner'
+                        }
+                    });
+                    
+                    console.log("New user created in Firestore:", user.uid);
+                } else {
+                    // Existing user - update last login time
+                    await setDoc(userRef, {
+                        lastLogin: serverTimestamp(),
+                        // Update these fields only if they exist in Google account but not in Firestore
+                        ...(user.displayName && !userSnap.data().displayName ? { displayName: user.displayName } : {}),
+                        ...(user.photoURL && !userSnap.data().photoURL ? { photoURL: user.photoURL } : {})
+                    }, { merge: true });
+                    
+                    console.log("Existing user updated in Firestore:", user.uid);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error("Error saving user data to Firestore:", error);
+                document.getElementById("status").innerText = "Error saving user data. Please try again.";
+                return false;
+            }
+        }
+
+        // Handle successful authentication
+        function handleAuthSuccess(user) {
+            document.getElementById("status").innerText = "Login successful! Saving your data...";
+            
+            saveUserData(user)
+                .then((success) => {
+                    if (success) {
+                        document.getElementById("status").innerText = "Login successful! Redirecting...";
+                        
+                        // Store basic user info in session storage
+                        sessionStorage.setItem('userName', user.displayName || '');
+                        sessionStorage.setItem('userEmail', user.email || '');
+                        sessionStorage.setItem('userId', user.uid || '');
+                        
+                        setTimeout(() => {
+                            window.location.href = "home.html";
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error during login:", error);
+                    document.getElementById("status").innerText = "Login successful, but there was an error saving your data.";
+                });
+        }
 
         window.signup = function() {
             const email = document.getElementById("signup-email").value;
             const password = document.getElementById("signup-password").value;
             
             createUserWithEmailAndPassword(auth, email, password)
-                .then(() => {
-                    document.getElementById("status").innerText = "Signup successful! You can now log in.";
+                .then((userCredential) => {
+                    handleAuthSuccess(userCredential.user);
                 })
                 .catch((error) => {
                     document.getElementById("status").innerText = error.message;
@@ -42,14 +130,61 @@
             const password = document.getElementById("login-password").value;
             
             signInWithEmailAndPassword(auth, email, password)
-                .then(() => {
-                    document.getElementById("status").innerText = "Login successful! Redirecting...";
-                    setTimeout(() => {
-                        window.location.href = "home.html";
-                    }, 1500);
+                .then((userCredential) => {
+                    handleAuthSuccess(userCredential.user);
                 })
                 .catch((error) => {
                     document.getElementById("status").innerText = error.message;
+                });
+        };
+
+        window.googleSignIn = function() {
+            document.getElementById("status").innerText = "Connecting to Google...";
+            
+            signInWithPopup(auth, googleProvider)
+                .then((result) => {
+                    // Google sign-in successful
+                    const user = result.user;
+                    document.getElementById("status").innerText = "Google sign-in successful! Saving your data...";
+                    
+                    saveUserData(user)
+                        .then((success) => {
+                            if (success) {
+                                document.getElementById("status").innerText = "Login successful! Redirecting...";
+                                
+                                // Store some basic info in session storage for quick access
+                                sessionStorage.setItem('userName', user.displayName || '');
+                                sessionStorage.setItem('userEmail', user.email || '');
+                                sessionStorage.setItem('userId', user.uid || '');
+                                
+                                setTimeout(() => {
+                                    window.location.href = "home.html";
+                                }, 1500);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error during user data save:", error);
+                            document.getElementById("status").innerText = "Login successful, but there was an error saving your data.";
+                        });
+                })
+                .catch((error) => {
+                    // Handle errors
+                    console.error("Google sign-in error:", error);
+                    
+                    let errorMessage = "Google sign-in failed.";
+                    
+                    // Provide more specific error messages for common issues
+                    if (error.code === 'auth/unauthorized-domain') {
+                        errorMessage = "This domain is not authorized for Google sign-in. Please contact the administrator.";
+                    } else if (error.code === 'auth/popup-closed-by-user') {
+                        errorMessage = "Sign-in window was closed. Please try again.";
+                    } else if (error.code === 'auth/cancelled-popup-request') {
+                        errorMessage = "Sign-in process was cancelled. Please try again.";
+                    } else {
+                        errorMessage = error.message || errorMessage;
+                    }
+                    
+                    document.getElementById("status").innerText = errorMessage;
                 });
         };
     </script>
@@ -64,17 +199,96 @@
             justify-content: center;
             align-items: center;
             font-family: Arial, sans-serif;
+            margin: 0;
         }
-        .tab { cursor: pointer; padding: 10px 20px; display: inline-block; }
-        .active { font-weight: bold; border-bottom: 2px solid #000; }
-        .form-container { display: none; }
-        .visible { display: block; }
+        .tab { 
+            cursor: pointer; 
+            padding: 10px 20px; 
+            display: inline-block; 
+        }
+        .active { 
+            font-weight: bold; 
+            border-bottom: 2px solid #000; 
+        }
+        .form-container { 
+            display: none; 
+            margin-top: 20px;
+        }
+        .visible { 
+            display: block; 
+        }
         .container {
             background: rgba(255, 255, 255, 0.8);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        input {
+            display: block;
+            width: 90%;
+            margin: 10px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #3367D6;
+        }
+        .google-btn {
+            background-color: white;
+            color: #444;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px auto;
+            width: 90%;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s, box-shadow 0.3s;
+            letter-spacing: 0.2px;
+        }
+        .google-btn:hover {
+            background-color: #f8f8f8;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .google-btn:active {
+            background-color: #eee;
+        }
+        .google-btn img {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+        .or-divider {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .or-divider:before, .or-divider:after {
+            content: "";
+            flex-grow: 1;
+            background: #ccc;
+            height: 1px;
+            margin: 0 10px;
         }
     </style>
 </head>
@@ -95,6 +309,11 @@
         
         <div id="login-box" class="form-container">
             <h2>Login</h2>
+            <button class="google-btn" onclick="googleSignIn()">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+                Sign in with Google
+            </button>
+            <div class="or-divider">OR</div>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-password" placeholder="Password">
             <button onclick="login()">Login</button>
