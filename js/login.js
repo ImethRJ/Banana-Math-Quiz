@@ -1,4 +1,4 @@
-        function login() {
+ /*       function login() {
             const username = document.getElementById("username").value;
             if (username) {
                 localStorage.setItem("currentUser", username);
@@ -17,4 +17,4 @@
             } else {
                 alert("Please enter a username and password to sign up.");
             }
-        }
+        }*/
