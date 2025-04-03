@@ -58,12 +58,7 @@
                         photoURL: user.photoURL || '',
                         authProvider: user.providerData[0]?.providerId || 'password',
                         createdAt: serverTimestamp(),
-                        lastLogin: serverTimestamp(),
-                        quizProgress: {
-                            completedQuizzes: 0,
-                            totalScore: 0,
-                            level: 'beginner'
-                        }
+                        lastLogin: serverTimestamp()
                     });
                     
                     console.log("New user created in Firestore:", user.uid);

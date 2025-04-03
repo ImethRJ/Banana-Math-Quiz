@@ -9,6 +9,18 @@ body {
     flex-direction: column;
     overflow: hidden;
     color: #fff;
+    position: relative;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .memory-game {
@@ -19,6 +31,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
 }
 
 .memory-card {
@@ -31,26 +44,44 @@ body {
     align-items: center;
     font-size: 36px;
     border-radius: 10px;
-    transition: transform 0.3s;
+    transition: transform 0.3s, background-color 0.3s;
+    transform-style: preserve-3d;
 }
 
 .memory-card.flipped {
     background-color: #ffffff;
-    transform: scale(1.1);
+    transform: rotateY(180deg) scale(1.05);
 }
 
-#timer {
+.memory-card.matched {
+    background-color: #7cfc00;
+    transform: rotateY(180deg) scale(1.05);
+    box-shadow: 0 0 10px #7cfc00;
+}
+
+.game-ui {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 450px;
     margin-top: 20px;
-    font-size: 24px;
+}
+
+#timer, #score, #moves {
+    font-size: 20px;
     color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 15px;
+    border-radius: 5px;
+    margin: 0 5px;
 }
 
 #completion-message {
     display: none;
     font-size: 28px;
     color: #fff;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px 30px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px 30px;
     border-radius: 10px;
     position: absolute;
     top: 50%;
@@ -58,20 +89,198 @@ body {
     transform: translate(-50%, -50%);
     opacity: 0;
     transition: opacity 1s ease-in-out;
+    text-align: center;
+    z-index: 100;
 }
 
 .exit-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: red;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 5px;
-        }
-        .exit-button:hover {
-            background-color: darkred;
-        }
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.exit-button:hover {
+    background-color: darkred;
+}
+
+.control-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.control-button:hover {
+    background-color: #2980b9;
+}
+
+.controls {
+    display: flex;
+    margin-top: 15px;
+}
+
+.difficulty-selector {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.difficulty-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.difficulty-btn.easy {
+    background-color: #2ecc71;
+}
+
+.difficulty-btn.medium {
+    background-color: #f39c12;
+}
+
+.difficulty-btn.hard {
+    background-color: #e74c3c;
+}
+
+.stars-container {
+    display: flex;
+    margin-top: 10px;
+    font-size: 24px;
+    color: gold;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    border-radius: 50%;
+    animation: fall 3s linear forwards;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(100vh);
+    }
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.modal-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.close-modal {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.continue-game {
+    background-color: #2ecc71;
+    color: white;
+}
+
+#resume-game-banner {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(46, 204, 113, 0.9);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    text-align: center;
+    z-index: 1001;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: banner-fade-in 0.5s ease-out;
+}
+
+@keyframes banner-fade-in {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+#resume-game-banner button {
+    margin: 0 5px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#resume-btn {
+    background-color: white;
+    color: #2ecc71;
+}
+
+#new-game-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* Card flip animation */
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+}
+
+.card-front {
+    background-color: #ffcc00;
+    transform: rotateY(0deg);
+}
+
+.card-back {
+    background-color: white;
+    transform: rotateY(180deg);
+}

@@ -1,12 +1,57 @@
-function exitGame() {
-            window.location.href = 'home.html';
+// Firebase configuration - Replace with your Firebase project config
+const firebaseConfig = {
+    apiKey: "AIzaSyA7js4aE8oDH9HPlQMJawxyDP3DwiY7xHc",
+    authDomain: "banana-quiz-6bf99.firebaseapp.com",
+    projectId: "banana-quiz-6bf99",
+    storageBucket: "banana-quiz-6bf99.firebasestorage.app",
+    messagingSenderId: "18102598554",
+    appId: "1:18102598554:web:cac2591308e3b466d59823"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Get Firebase auth and Firestore references
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Check authentication state and handle UI accordingly
+let currentUser = null;
+
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        // User is signed in
+        currentUser = user;
+        console.log("User logged in:", user.email);
+      
+        // Show save button if user is logged in
+        const saveBtn = document.getElementById("save-btn");
+        if (saveBtn) {
+            saveBtn.style.display = "block";
         }
+    } else {
+        // User is signed out
+        currentUser = null;
+        console.log("No user logged in");
+      
+        // Hide save button if no user is logged in
+        const saveBtn = document.getElementById("save-btn");
+        if (saveBtn) {
+            saveBtn.style.display = "none";
+        }
+    }
+});
+
+function exitGame() {
+    window.location.href = 'home.html';
+}
 
 let correctAnswer = null;
 let score = 0;
-let lives = 2;
-let timeLeft = 20;
+let lives = 2; // Hard level has 2 lives
+let timeLeft = 30; // Hard level has 30 seconds
 let timer;
+
 
 const timerElement = document.getElementById("timer");
 const scoreElement = document.getElementById("score");
@@ -18,8 +63,11 @@ const resultElement = document.getElementById("result");
 
 async function fetchQuestion() {
     try {
-        questionImg.src = ""; 
+        // Show loading animation
+        questionImg.src = ""; // Clear previous image
         questionImg.alt = "Loading puzzle...";
+        
+        // Reset UI
         resultElement.innerText = "";
         resultElement.classList.remove("fade-in", "correct", "incorrect");
         answerInput.value = "";
@@ -48,26 +96,31 @@ function checkAnswer() {
     const userAnswer = answerInput.value.trim();
     
     if (userAnswer === "") {
+        // Shake input to indicate it's required
         answerInput.classList.add("shake");
         setTimeout(() => answerInput.classList.remove("shake"), 500);
         return;
     }
     
     if (parseInt(userAnswer) === correctAnswer) {
+        // Correct answer
         resultElement.innerText = "Correct! 🎉";
         resultElement.className = "fade-in correct";
-        score += 20;
+        score += 30; // More points for hard level
         scoreElement.innerText = score;
         
+        // Add positive visual feedback
         questionImg.style.filter = "brightness(1.1)";
         setTimeout(() => {
             questionImg.style.filter = "none";
             fetchQuestion();
         }, 1500);
     } else {
+        // Wrong answer
         resultElement.innerText = "Incorrect! Try again ❌";
         resultElement.className = "fade-in incorrect";
         
+        // Add negative visual feedback
         questionImg.style.filter = "grayscale(0.5)";
         setTimeout(() => {
             questionImg.style.filter = "none";
@@ -88,11 +141,12 @@ function reduceLife() {
 
 function updateLives() {
     let hearts = "";
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 2; i++) { // Hard level has 2 hearts
         hearts += i < lives ? "❤️" : "💔";
     }
     livesElement.innerHTML = hearts;
     
+    // Visual indication when lives are low
     if (lives === 1) {
         livesElement.style.color = "#F44336";
         livesElement.style.animation = "pulse 0.8s infinite alternate";
@@ -101,13 +155,14 @@ function updateLives() {
 
 function resetTimer() {
     clearInterval(timer);
-    timeLeft = 20;
+    timeLeft = 30; // Hard level has 30 seconds
     timerElement.innerText = `${timeLeft}s`;
     
     timer = setInterval(() => {
         timeLeft--;
         timerElement.innerText = `${timeLeft}s`;
         
+        // Visual warning when time is running low
         if (timeLeft <= 10) {
             timerElement.style.color = timeLeft % 2 === 0 ? "#FF5722" : "white";
         } else {
@@ -127,6 +182,7 @@ function resetTimer() {
 function endGame() {
     clearInterval(timer);
     
+    // Create game over overlay
     const overlay = document.createElement("div");
     overlay.style.cssText = `
         position: fixed;
@@ -145,6 +201,7 @@ function endGame() {
         padding: 20px;
     `;
     
+    // Additional buttons for save and home
     overlay.innerHTML = `
         <h2 style="font-size: 2.5rem; margin-bottom: 15px;">Game Over!</h2>
         <p style="font-size: 1.5rem; margin-bottom: 20px;">Your final score: ${score}</p>
@@ -159,21 +216,189 @@ function endGame() {
                 cursor: pointer;
                 font-weight: 700;
             ">Play Again</button>
+            ${currentUser ? `
+            <button id="save-score-btn" style="
+                padding: 12px 25px;
+                font-size: 1.2rem;
+                background: linear-gradient(to right, #4CAF50, #2E7D32);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                cursor: pointer;
+                font-weight: 700;
+            ">Save Score</button>
+            ` : ''}
+            <button id="home-btn" style="
+                padding: 12px 25px;
+                font-size: 1.2rem;
+                background: linear-gradient(to right, #2196F3, #0D47A1);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                cursor: pointer;
+                font-weight: 700;
+            ">Home</button>
         </div>
     `;
 
     document.body.appendChild(overlay);
 
+    // Add event listeners to buttons
     document.getElementById("restart-btn").addEventListener("click", restartGame);
+    
+    if (currentUser) {
+        document.getElementById("save-score-btn").addEventListener("click", () => {
+            saveScore();
+            document.getElementById("save-score-btn").textContent = "Saved!";
+            document.getElementById("save-score-btn").style.background = "#888";
+            document.getElementById("save-score-btn").disabled = true;
+        });
+    }
+    
+    document.getElementById("home-btn").addEventListener("click", () => {
+        window.location.href = 'home.html';
+    });
 }
 
 function restartGame() {
     score = 0;
-    lives = 2;
+    lives = 2; // Reset to 2 lives for hard level
     scoreElement.innerText = score;
     updateLives();
     document.querySelector("div[style*='z-index: 999']").remove();
     fetchQuestion();
+}
+
+function saveScore() {
+    if (!currentUser) {
+        // If no user is logged in, redirect to login page
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Only proceed if the score hasn't been saved yet or is not zero
+    if (score === 0) {
+        resultElement.innerText = "No score to save.";
+        resultElement.className = "fade-in incorrect";
+        return;
+    }
+    
+    // Get current date/time
+    const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+    
+    // Store the current score value before resetting
+    const currentScore = score;
+    
+    // Create score data object for individual game score
+    const scoreData = {
+        userEmail: currentUser.email,
+        userId: currentUser.uid,
+        score: currentScore,
+        timestamp: timestamp,
+        lives: lives,
+        timeLeft: timeLeft,
+        difficulty: "hard" // Add difficulty level for filtering in leaderboards
+    };
+    
+    // Disable the save button immediately to prevent multiple clicks
+    const saveBtn = document.getElementById("save-btn");
+    saveBtn.innerHTML = '<i class="fas fa-save"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    // Create a batch to perform multiple operations atomically
+    const batch = db.batch();
+    
+    // Reference to the individual score document
+    const gameScoreRef = db.collection("scores").doc();
+    
+    // Reference to the user's total score document
+    const userTotalRef = db.collection("userTotals").doc(currentUser.uid);
+    
+    // Add the individual game score
+    batch.set(gameScoreRef, scoreData);
+    
+    // Update the user's total score using a transaction for data consistency
+    db.runTransaction(async (transaction) => {
+        // Get the current user total document
+        const userTotalDoc = await transaction.get(userTotalRef);
+        
+        if (!userTotalDoc.exists) {
+            // If this is the user's first game, create a new total document
+            transaction.set(userTotalRef, {
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                totalScore: currentScore,
+                gamesPlayed: 1,
+                highestScore: currentScore,
+                lastPlayed: timestamp
+            });
+        } else {
+            // Update existing total document
+            const userData = userTotalDoc.data();
+            const newTotalScore = userData.totalScore + currentScore;
+            const newGamesPlayed = userData.gamesPlayed + 1;
+            const newHighestScore = Math.max(userData.highestScore, currentScore);
+            
+            transaction.update(userTotalRef, {
+                totalScore: newTotalScore,
+                gamesPlayed: newGamesPlayed,
+                highestScore: newHighestScore,
+                lastPlayed: timestamp
+            });
+        }
+        
+        return Promise.resolve();
+    })
+    .then(() => {
+        console.log("Score and user totals updated successfully");
+        
+        // Reset the score to prevent saving the same score multiple times
+        score = 0;
+        
+        // Update the score display in the UI
+        scoreElement.innerText = score;
+        
+        // Show success message to user
+        resultElement.innerText = "Score saved successfully! 📊";
+        resultElement.className = "fade-in correct";
+        
+        // Visual feedback
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Saved';
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> SAVE';
+            saveBtn.disabled = false;
+        }, 3000);
+    })
+    .catch((error) => {
+        console.error("Error updating score and totals: ", error);
+        
+        // Fallback to just saving the individual score if the transaction fails
+        db.collection("scores").add(scoreData)
+            .then((docRef) => {
+                console.log("Individual score saved with ID: ", docRef.id);
+                resultElement.innerText = "Score saved (but total not updated). Try again.";
+                resultElement.className = "fade-in correct";
+                
+                // Still reset the score to prevent double-saving
+                score = 0;
+                scoreElement.innerText = score;
+                
+                // Re-enable the save button
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> SAVE';
+                saveBtn.disabled = false;
+            })
+            .catch((secondError) => {
+                console.error("Complete save failure: ", secondError);
+                resultElement.innerText = "Failed to save score. Check permissions.";
+                resultElement.className = "fade-in incorrect";
+                
+                // Re-enable the save button
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> SAVE';
+                saveBtn.disabled = false;
+            });
+    });
 }
 
 submitBtn.addEventListener("click", checkAnswer);
@@ -183,4 +408,16 @@ answerInput.addEventListener("keypress", (event) => {
     }
 });
 
-fetchQuestion();
+// Initialize the game
+window.onload = function() {
+    // Add event listener for the save button
+    const saveBtn = document.getElementById("save-btn");
+    if (saveBtn) {
+        saveBtn.addEventListener("click", saveScore);
+        
+        // Hide save button initially (will be shown if user is logged in)
+        saveBtn.style.display = "none";
+    }
+    
+    fetchQuestion();
+};

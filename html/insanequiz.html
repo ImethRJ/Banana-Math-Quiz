@@ -3,21 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banana Math Quiz</title>
+    <title>Banana Math Quiz - Insane</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/commonquiz.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <style>
+        /* Additional styling for insane mode */
+        body {
+            background: linear-gradient(to bottom right, #121212, #2C0033);
+        }
+        
+        .game-container {
+            border: 2px solid #FF0055;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
+        }
+        
+        .header h1 {
+            color: #FF0055;
+            text-shadow: 0 0 10px rgba(255, 0, 85, 0.7);
+        }
+        
+        .timer {
+            animation: pulse-red 1.5s infinite alternate;
+        }
+        
+        @keyframes pulse-red {
+            from {
+                color: white;
+            }
+            to {
+                color: #FF0055;
+            }
+        }
+    </style>
 </head>
 <body>
     <button class="exit-button" onclick="exitGame()">Exit</button>
     <div class="game-container">
         <div class="header">
-            <h1>Banana Math Quiz</h1>
+            <h1>Banana Math Quiz - INSANE</h1>
         </div>
         
         <div class="stat-container">
             <div class="stat timer">
                 <i class="fas fa-hourglass-half"></i>
-                <span id="timer">15s</span>
+                <span id="timer">10s</span>
             </div>
             <div class="stat score">
                 <i class="fas fa-star"></i>
@@ -35,16 +67,19 @@
             <input type="text" id="answer" class="answer-input" placeholder="Enter your answer..." autocomplete="off">
         </div>
         
-        <button class="submit-btn" id="submit-btn">
-            <i class="fas fa-paper-plane"></i> Submit
+        <button class="submit-btn" id="submit-btn" style="background: linear-gradient(to right, #FF0055, #FF5722);">
+            <i class="fas fa-paper-plane"></i> SUBMIT
+        </button>
+        <button class="save-btn" id="save-btn" style="background: linear-gradient(to right, #FF0055, #800080);">
+            <i class="fas fa-save"></i> SAVE
         </button>
         
         <div id="result"></div>
     </div>
     
     <div class="footer">
-        <p>Challenge your brain with fun math puzzles! 🧠✨</p>
+        <p>INSANE difficulty - Only for math geniuses! 🔥💀</p>
     </div>
-    <script src="../js/insanequiz.js"></script>
+<script src="../js/insanequiz.js"></script>
 </body>
 </html>

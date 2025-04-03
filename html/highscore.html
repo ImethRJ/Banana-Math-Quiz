@@ -3,289 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banana Math Quiz - Top Players</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/highscore.css">
+    <title>Banana Math Quiz - Leaderboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="../css/highscore.css" rel="stylesheet">
 </head>
 <body>
-    <div class="login-section">
-        <button id="loginButton">Login</button>
-        <button id="homeButton">Home</button>
-        <div id="authStatus" class="auth-status">Not logged in</div>
-    </div>
-
-    <div class="leaderboard-container">
-        <div class="leaderboard-header">
-            <h1>🍌Leaderboard - Top Players🍌</h1>
+    <div class="container">
+        <div class="header">
+            <h1>🍌 Banana Math Quiz Leaderboard</h1>
+            <div class="header-actions">
+                <button id="homeButton" class="btn">
+                    <i class="ri-home-line"></i> Home
+                </button>
+                <button id="loginButton" class="btn">
+                    <i class="ri-logout-box-r-line"></i> Log Out
+                </button>
+            </div>
         </div>
+
+        <div id="user-info" class="user-info">
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="highest-score">Highest Score</button>
+                <button class="filter-btn" data-filter="total-score">Total Score</button>
+                <button class="filter-btn" data-filter="games-played">Games Played</button>
+            </div>
+            <input type="text" id="player-search" class="search-input" placeholder="🔍 Search players...">
+        </div>
+
         <div id="leaderboard-content">
-            <div class="loading">Please log in to view the leaderboard...</div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Highest Score</th>
+                        <th>Total Score</th>
+                        <th>Games</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
-        // Import the Firebase SDK modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { 
-            getAuth, 
-            onAuthStateChanged, 
-            signOut,
-            GoogleAuthProvider
-        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            query, 
-            getDocs, 
-            orderBy, 
-            limit 
-        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-        
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyA7js4aE8oDH9HPlQMJawxyDP3DwiY7xHc",
-            authDomain: "banana-quiz-6bf99.firebaseapp.com",
-            projectId: "banana-quiz-6bf99",
-            storageBucket: "banana-quiz-6bf99.appspot.com",
-            messagingSenderId: "18102598554",
-            appId: "1:18102598554:web:cac2591308e3b466d59823"
-        };
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signOut 
+} from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+import { 
+    getFirestore, 
+    collection, 
+    getDocs,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+const firebaseConfig = {
+    apiKey: "AIzaSyA7js4aE8oDH9HPlQMJawxyDP3DwiY7xHc",
+    authDomain: "banana-quiz-6bf99.firebaseapp.com",
+    projectId: "banana-quiz-6bf99",
+    storageBucket: "banana-quiz-6bf99.appspot.com",
+    messagingSenderId: "18102598554",
+    appId: "1:18102598554:web:cac2591308e3b466d59823"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const loginButton = document.getElementById('loginButton');
+const homeButton = document.getElementById('homeButton');
+const userInfoDiv = document.getElementById('user-info');
+const leaderboardBody = document.getElementById('leaderboard-body');
+const filterButtons = document.querySelectorAll('.filter-btn');
+const playerSearch = document.getElementById('player-search');
+
+let allPlayers = [];
+let currentUser = null;
+let currentSortMethod = 'highest-score';
+
+// Format display name based on user type
+function formatDisplayName(email, displayName, isGoogleSignIn) {
+    // For Google Sign-In, using full display name
+    if (isGoogleSignIn && displayName) {
+        // If it's a full name (more than one word), return full name
+        if (displayName.split(' ').length > 1) {
+            return displayName;
+        }
+    }
+    
+    // For non-Google or single-word display names, use username part of email
+    if (email) {
+        return email.split('@')[0];
+    }
+    
+    return 'Unknown Player';
+}
+
+// Generate avatar URL
+function getAvatarUrl(photoURL, displayName, email, isGoogleSignIn) {
+    // For Google Sign-In, use Google profile photo if available
+    if (isGoogleSignIn && photoURL) {
+        return photoURL;
+    }
+    
+    // For other sign-in methods, generate avatar
+    const name = displayName || (email ? email.split('@')[0] : 'Unknown');
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ffd633&color=333&bold=true`;
+}
+
+homeButton.addEventListener('click', () => {
+    window.location.href = 'home.html';
+});
+
+// Filter buttons event listeners
+filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Remove active class from all buttons
+        filterButtons.forEach(b => b.classList.remove('active'));
         
-        // DOM elements
-        const loginButton = document.getElementById('loginButton');
-        const authStatus = document.getElementById('authStatus');
-        const homeButton = document.getElementById('homeButton');
-        const leaderboardContent = document.getElementById('leaderboard-content');
+        // Add active class to clicked button
+        btn.classList.add('active');
         
-        // Handle home button click
-        homeButton.addEventListener('click', () => {
-            window.location.href = 'home.html';
-        });
+        // Update current sort method
+        currentSortMethod = btn.dataset.filter;
         
-        // Listen for authentication state changes
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in - update UI
-                updateUserDisplay(user);
-                
-                // Update login button to log out
-                loginButton.textContent = "Log Out";
-                loginButton.onclick = () => {
-                    signOut(auth).then(() => {
-                        window.location.reload();
-                    }).catch((error) => {
-                        console.error("Sign out error:", error);
-                    });
+        // Re-render leaderboard with new sort
+        renderLeaderboard(allPlayers);
+    });
+});
+
+// Search functionality
+playerSearch.addEventListener('input', () => {
+    const searchTerm = playerSearch.value.toLowerCase();
+    const filteredPlayers = allPlayers.filter(player => 
+        player.displayName.toLowerCase().includes(searchTerm)
+    );
+    renderLeaderboard(filteredPlayers);
+});
+
+// Fetch user-specific stats
+async function fetchUserStats(user) {
+    try {
+        // Try to fetch from users collection first
+        const usersQuery = query(
+            collection(db, "users"), 
+            where("email", "==", user.email)
+        );
+        const usersSnapshot = await getDocs(usersQuery);
+        
+        if (!usersSnapshot.empty) {
+            const userData = usersSnapshot.docs[0].data();
+            if (userData.quizProgress) {
+                return {
+                    highestScore: userData.quizProgress.highestScore || 0,
+                    totalScore: userData.quizProgress.totalScore || 0,
+                    gamesPlayed: userData.quizProgress.completedQuizzes || 0
                 };
-                
-                // Load leaderboard data
-                loadLeaderboard();
-            } else {
-                // User is signed out - update UI
-                authStatus.innerHTML = "Not logged in";
-                
-                // Update login button
-                loginButton.textContent = "Login";
-                loginButton.onclick = () => {
-                    window.location.href = 'login.html';
-                };
-                
-                // Show login prompt
-                leaderboardContent.innerHTML = 
-                    '<div class="loading">Please log in to view the leaderboard...</div>';
             }
-        });
-        
-        // Function to update user display with profile info
-        function updateUserDisplay(user) {
-            let userDisplay = '';
-            
-            // Add avatar if available
-            if (user.photoURL) {
-                userDisplay += `<div class="user-avatar" style="background-image: url('${user.photoURL}')"></div>`;
-            } else {
-                // Display first letter of email/name as placeholder
-                const initial = (user.displayName || user.email || '?').charAt(0).toUpperCase();
-                userDisplay += `<div class="placeholder-avatar">${initial}</div>`;
-            }
-            
-            // Use display name if available, otherwise use email
-            const displayName = user.displayName || user.email.split('@')[0];
-            userDisplay += `Logged in as: ${displayName}`;
-            
-            authStatus.innerHTML = userDisplay;
         }
         
-        // Function to fetch and display top players
-        async function loadLeaderboard() {
-            leaderboardContent.innerHTML = '<div class="loading">Loading leaderboard data...</div>';
-            
-            try {
-                // Combined approach: Get data from both collections
-                const usersRef = collection(db, "users");
-                const userTotalsRef = collection(db, "userTotals");
-                
-                // Array to store all player data
-                const players = [];
-                
-                // 1. Get data from users collection (Google Sign-In users)
-                try {
-                    const usersSnapshot = await getDocs(usersRef);
-                    
-                    usersSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.quizProgress) {
-                            players.push({
-                                id: doc.id,
-                                source: 'users',
-                                displayName: data.displayName || (data.email ? data.email.split('@')[0] : 'Unknown Player'),
-                                photoURL: data.photoURL || null,
-                                highestScore: data.quizProgress.highestScore || 0,
-                                totalScore: data.quizProgress.totalScore || 0,
-                                gamesPlayed: data.quizProgress.completedQuizzes || 0
-                            });
-                        }
-                    });
-                    
-                    console.log(`Loaded ${players.length} players from users collection`);
-                } catch (error) {
-                    console.error("Error loading data from users collection:", error);
-                }
-                
-                // 2. Get data from userTotals collection (traditional users)
-                try {
-                    const userTotalsSnapshot = await getDocs(userTotalsRef);
-                    
-                    userTotalsSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        const email = data.userEmail || 'Unknown Player';
-                        const displayName = data.userEmail ? email.split('@')[0] : 'Unknown Player';
-                        
-                        // Check if this user already exists in the players array
-                        // This prevents duplicates if a user is in both collections
-                        const existingPlayerIndex = players.findIndex(p => 
-                            (p.displayName.toLowerCase() === displayName.toLowerCase()) || 
-                            (data.userId && p.id === data.userId)
-                        );
-                        
-                        if (existingPlayerIndex !== -1) {
-                            // User exists - update scores if the userTotals scores are higher
-                            const existingPlayer = players[existingPlayerIndex];
-                            
-                            if ((data.highestScore || 0) > existingPlayer.highestScore) {
-                                existingPlayer.highestScore = data.highestScore || 0;
-                            }
-                            
-                            if ((data.totalScore || 0) > existingPlayer.totalScore) {
-                                existingPlayer.totalScore = data.totalScore || 0;
-                            }
-                            
-                            if ((data.gamesPlayed || 0) > existingPlayer.gamesPlayed) {
-                                existingPlayer.gamesPlayed = data.gamesPlayed || 0;
-                            }
-                        } else {
-                            // New user - add to players array
-                            players.push({
-                                id: doc.id,
-                                source: 'userTotals',
-                                displayName: displayName,
-                                photoURL: null,
-                                highestScore: data.highestScore || 0,
-                                totalScore: data.totalScore || 0,
-                                gamesPlayed: data.gamesPlayed || 0
-                            });
-                        }
-                    });
-                    
-                    console.log(`Total players after merging collections: ${players.length}`);
-                } catch (error) {
-                    console.error("Error loading data from userTotals collection:", error);
-                }
-                
-                if (players.length === 0) {
-                    leaderboardContent.innerHTML = '<div class="error">No player data found in either collection.</div>';
-                    return;
-                }
-                
-                // Sort players by highest score in descending order
-                players.sort((a, b) => b.highestScore - a.highestScore || b.totalScore - a.totalScore);
-                
-                // Take top 5 players
-                const topPlayers = players.slice(0, 5);
-                
-                console.log("Top 5 players:", topPlayers);
-                
-                // Create table structure
-                let tableHTML = `
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>Player</th>
-                                <th>Highest Score</th>
-                                <th>Total Score</th>
-                                <th>Games</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                // Add each player to the table
-                topPlayers.forEach((player, index) => {
-                    // Create badge for top 3 players
-                    let badge = '';
-                    if (index === 0) badge = '<span class="badge gold">1st</span>';
-                    else if (index === 1) badge = '<span class="badge silver">2nd</span>';
-                    else if (index === 2) badge = '<span class="badge bronze">3rd</span>';
-                    
-                    // Player avatar
-                    let avatarHTML = '';
-                    if (player.photoURL) {
-                        avatarHTML = `<div class="user-avatar" style="background-image: url('${player.photoURL}')"></div>`;
-                    } else {
-                        const initial = player.displayName.charAt(0).toUpperCase();
-                        avatarHTML = `<div class="placeholder-avatar">${initial}</div>`;
-                    }
-                    
-                    tableHTML += `
-                        <tr>
-                            <td class="rank">#${index + 1}</td>
-                            <td class="username">
-                                <div style="display: flex; align-items: center;">
-                                    ${avatarHTML}
-                                    ${player.displayName}${badge}
-                                </div>
-                            </td>
-                            <td class="score">${player.highestScore}</td>
-                            <td class="score">${player.totalScore}</td>
-                            <td class="score">${player.gamesPlayed}</td>
-                        </tr>
-                    `;
-                });
-                
-                tableHTML += `
-                        </tbody>
-                    </table>
-                `;
-                
-                leaderboardContent.innerHTML = tableHTML;
-                
-            } catch (error) {
-                console.error("Error loading leaderboard:", error);
-                leaderboardContent.innerHTML = `
-                    <div class="error">
-                        <p>Error loading leaderboard data: ${error.message}</p>
-                        <p>This might be due to insufficient permissions or a database issue.</p>
+        // If not found in users, try userTotals collection
+        const userTotalsQuery = query(
+            collection(db, "userTotals"), 
+            where("userEmail", "==", user.email)
+        );
+        const userTotalsSnapshot = await getDocs(userTotalsQuery);
+        
+        if (!userTotalsSnapshot.empty) {
+            const userTotalsData = userTotalsSnapshot.docs[0].data();
+            return {
+                highestScore: userTotalsData.highestScore || 0,
+                totalScore: userTotalsData.totalScore || 0,
+                gamesPlayed: userTotalsData.gamesPlayed || 0
+            };
+        }
+        
+        // If no stats found
+        return {
+            highestScore: 0,
+            totalScore: 0,
+            gamesPlayed: 0
+        };
+    } catch (error) {
+        console.error("Error fetching user stats:", error);
+        return {
+            highestScore: 0,
+            totalScore: 0,
+            gamesPlayed: 0
+        };
+    }
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+        
+        // Determine if user is signed in via Google
+        const isGoogleSignIn = user.providerData?.some(
+            provider => provider.providerId === 'google.com'
+        );
+        
+        // Format display name and get avatar
+        const displayName = formatDisplayName(
+            user.email, 
+            user.displayName, 
+            isGoogleSignIn
+        );
+        const avatarUrl = getAvatarUrl(
+            user.photoURL, 
+            user.displayName, 
+            user.email, 
+            isGoogleSignIn
+        );
+        
+        // Fetch user-specific stats
+        const userStats = await fetchUserStats(user);
+        
+        userInfoDiv.innerHTML = `
+            <img src="${avatarUrl}" alt="User Avatar" class="user-avatar">
+            <div class="user-details">
+                <div class="name">${displayName}</div>
+                <div class="email">${user.email}</div>
+                <div class="user-stats">
+                    <div class="user-stat">
+                        <div class="user-stat-value">${userStats.highestScore}</div>
+                        <div class="user-stat-label">Highest Score</div>
                     </div>
-                `;
+                    <div class="user-stat">
+                        <div class="user-stat-value">${userStats.gamesPlayed}</div>
+                        <div class="user-stat-label">Games Played</div>
+                    </div>
+                    <div class="user-stat">
+                        <div class="user-stat-value">${userStats.totalScore}</div>
+                        <div class="user-stat-label">Total Score</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Update login button to log out
+        loginButton.innerHTML = '<i class="ri-logout-box-r-line"></i> Log Out';
+        loginButton.onclick = () => {
+            signOut(auth).then(() => {
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error("Sign out error:", error);
+            });
+        };
+        
+        // Load leaderboard data
+        loadLeaderboard(user);
+    } else {
+        window.location.href = 'login.html';
+    }
+});
+
+async function loadLeaderboard(currentUser) {
+    try {
+        const usersRef = collection(db, "users");
+        const userTotalsRef = collection(db, "userTotals");
+        
+        const players = [];
+        
+        // Fetch from users collection
+        const usersSnapshot = await getDocs(usersRef);
+        usersSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.quizProgress) {
+                // Determine if this user signed in via Google
+                const isGoogleSignIn = data.providerData?.some(
+                    provider => provider.providerId === 'google.com'
+                );
+                
+                const displayName = formatDisplayName(
+                    data.email, 
+                    data.displayName, 
+                    isGoogleSignIn
+                );
+                
+                players.push({
+                    id: doc.id,
+                    displayName: displayName,
+                    email: data.email,
+                    photoURL: getAvatarUrl(
+                        data.photoURL, 
+                        data.displayName, 
+                        data.email, 
+                        isGoogleSignIn
+                    ),
+                    highestScore: data.quizProgress.highestScore || 0,
+                    totalScore: data.quizProgress.totalScore || 0,
+                    gamesPlayed: data.quizProgress.completedQuizzes || 0,
+                    isCurrentUser: data.email === currentUser.email
+                });
             }
+        });
+        
+        // Fetch from userTotals collection
+        const userTotalsSnapshot = await getDocs(userTotalsRef);
+        userTotalsSnapshot.forEach(doc => {
+            const data = doc.data();
+            const email = data.userEmail || 'Unknown Player';
+            
+            // Determine if this user signed in via Google
+            const isGoogleSignIn = data.providerData?.some(
+                provider => provider.providerId === 'google.com'
+            );
+            
+            const displayName = formatDisplayName(
+                email, 
+                data.displayName, 
+                isGoogleSignIn
+            );
+            
+            const existingPlayerIndex = players.findIndex(p => 
+                (p.displayName.toLowerCase() === displayName.toLowerCase()) || 
+                (data.userId && p.id === data.userId)
+            );
+            
+            if (existingPlayerIndex !== -1) {
+                const existingPlayer = players[existingPlayerIndex];
+                existingPlayer.highestScore = Math.max(existingPlayer.highestScore, data.highestScore || 0);
+                existingPlayer.totalScore = Math.max(existingPlayer.totalScore, data.totalScore || 0);
+                existingPlayer.gamesPlayed = Math.max(existingPlayer.gamesPlayed, data.gamesPlayed || 0);
+            } else {
+                players.push({
+                    id: doc.id,
+                    displayName: displayName,
+                    email: email,
+                    photoURL: getAvatarUrl(
+                        null, 
+                        displayName, 
+                        email, 
+                        isGoogleSignIn
+                    ),
+                    highestScore: data.highestScore || 0,
+                    totalScore: data.totalScore || 0,
+                    gamesPlayed: data.gamesPlayed || 0,
+                    isCurrentUser: email === currentUser.email
+                });
+            }
+        });
+        
+        // Store players globally for filtering
+        allPlayers = players;
+        
+        // Initial render of leaderboard
+        renderLeaderboard(players);
+        
+    } catch (error) {
+        console.error("Error loading leaderboard:", error);
+        leaderboardBody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; color: red;">
+                    Error loading leaderboard: ${error.message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function renderLeaderboard(players) {
+    // Sort players based on current filter
+    const sortedPlayers = players.sort((a, b) => {
+        switch(currentSortMethod) {
+            case 'highest-score':
+                return b.highestScore - a.highestScore;
+            case 'total-score':
+                return b.totalScore - a.totalScore;
+            case 'games-played':
+                return b.gamesPlayed - a.gamesPlayed;
+            default:
+                return b.highestScore - a.highestScore;
         }
+    });
+
+    // Take top 10 players
+    const topPlayers = sortedPlayers.slice(0, 10);
+    
+    // Populate leaderboard
+    leaderboardBody.innerHTML = topPlayers.map((player, index) => `
+        <tr class="${player.isCurrentUser ? 'current-user' : ''}">
+            <td>
+                <div class="rank-badge rank-${index + 1}">
+                    ${index + 1}
+                </div>
+            </td>
+            <td class="player-cell">
+                <img src="${player.photoURL}" 
+                     alt="${player.displayName}" class="player-avatar">
+                <div class="player-name">
+                    <strong>${player.displayName}</strong>
+                    <small>${player.isCurrentUser ? '(You)' : ''}</small>
+                </div>
+            </td>
+            <td>${player.highestScore}</td>
+            <td>${player.totalScore}</td>
+            <td>${player.gamesPlayed}</td>
+        </tr>
+    `).join('');
+}
     </script>
-</body>
-</html>

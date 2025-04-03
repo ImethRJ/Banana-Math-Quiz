@@ -3,22 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Match - Additional Game</title>
+    <title>Memory Match - Advanced Game</title>
     <link href="../css/additional game.css" rel="stylesheet">
-    
 </head>
-<body>
-    <div class="memory-game">
-        <button class="exit-button" onclick="exitGame()">Exit</button>
+<body>    
+    <div class="game-header">
+        <button class="exit-button" onclick="confirmExit()">Exit</button>
     </div>
-    <div id="timer">Time: 0</div>
-    <div id="completion-message">You finished the additional game!</div>
+
+    <div class="memory-game"></div>
     
-    <script>
-        function exitGame() {
-            window.location.href = 'home.html'; 
-        }
-    </script>
+    <div class="game-ui">
+        <div id="timer">Time: 0</div>
+        <div id="score">Score: 0</div>
+        <div id="moves">Moves: 0</div>
+    </div>
+
+    <div class="stars-container">
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+    </div>
+
+    <div class="controls">
+        <button class="control-button" id="restart-btn" onclick="restartGame()">Restart</button>
+        <button class="control-button" id="hint-btn" onclick="showHint()">Hint (3)</button>
+        <button class="control-button" id="pause-btn" onclick="togglePause()">Pause</button>
+    </div>
+    
+    <div id="completion-message">
+        <h2>Congratulations!</h2>
+        <p>You have finished the additional game. Please select a level for the main game.</p>
+        <p>You completed the game in <span id="final-time"></span> seconds with <span id="final-moves"></span> moves.</p>
+        <p>Your score: <span id="final-score"></span></p>
+        <div class="stars-container" id="final-stars"></div>
+    </div>
+
+    <div class="modal" id="exit-modal">
+        <div class="modal-content">
+            <h2>Are you sure you want to exit?</h2>
+            <div class="modal-buttons">
+                <button class="modal-button continue-game" onclick="closeModal()">Continue Playing</button>
+                <button class="modal-button close-modal" onclick="exitGame()">Exit Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="pause-modal">
+        <div class="modal-content">
+            <h2>Game Paused</h2>
+            <p>Take a break and resume when you're ready.</p>
+            <div class="modal-buttons">
+                <button class="modal-button continue-game" onclick="togglePause()">Resume Game</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/additional game.js"></script>
 </body>
 </html>
