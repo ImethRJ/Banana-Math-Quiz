@@ -49,7 +49,7 @@ function exitGame() {
 let correctAnswer = null;
 let score = 0;
 let lives = 1; // Insane level has only 1 life
-let timeLeft = 25; // Insane level has only 25 seconds
+let timeLeft = 15; // Insane level has only 15 seconds
 let timer;
 let consecutiveCorrect = 0; // Track consecutive correct answers for bonus
 
@@ -114,11 +114,11 @@ function checkAnswer() {
         consecutiveCorrect++;
         
         // Calculate score with bonus for consecutive correct answers
-        let pointsEarned = 35; // Base points for insane mode (changed from 100 to 35)
+        let pointsEarned = 35;
         let bonusPoints = 0;
         
         if (consecutiveCorrect >= 3) {
-            bonusPoints = Math.min(25 * (consecutiveCorrect - 2), 100); // Cap bonus at 100, reduced from 50 to 25
+            bonusPoints = Math.min(25 * (consecutiveCorrect - 2), 100); 
         }
         
         const totalPoints = pointsEarned + bonusPoints;
@@ -191,7 +191,7 @@ function updateLives() {
 
 function resetTimer() {
     clearInterval(timer);
-    timeLeft = 10; // Insane level has 25 seconds
+    timeLeft = 15; // Insane level has 15 seconds
     timerElement.innerText = `${timeLeft}s`;
     
     timer = setInterval(() => {
